@@ -1,24 +1,24 @@
 <script lang="ts">
-	import { eventFactory } from '../services/eventFactory';
 	import { NoteBlueprint } from 'applesauce-factory/blueprints';
 	import { publishEvent } from '../services/publishing';
+	import { config } from '$lib/services/config.svelte';
 
 	let content: string = '';
 	let isPosting: boolean = false;
 	let error: string = '';
 
 	async function postNote() {
-		if (!content.trim()) return;
+		if (!content.trim() || !config.eventFactory) return;
 
 		isPosting = true;
 		error = '';
 
 		try {
 			// Create a draft event using the NoteBlueprint
-			const draft = await eventFactory.create(NoteBlueprint, content);
+			const draft = await config.eventFactory.create(NoteBlueprint, content);
 
 			// Sign the draft event
-			const signed = await eventFactory.sign(draft);
+			const signed = await config.eventFactory.sign(draft);
 
 			// Publish the event
 			await publishEvent(signed);

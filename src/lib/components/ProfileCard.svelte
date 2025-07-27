@@ -27,7 +27,7 @@
 			class="my-4 h-12 w-12 rounded-full object-cover"
 		/>
 		<div>
-			<h3 class="text-lg font-semibold">{$profile.name || $profile.display_name}</h3>
+			<h3 class="text-lg font-semibold">{$profile.name || $profile.display_name || 'Unknown'}</h3>
 		</div>
 	</div>
 {/if}

@@ -1,5 +1,6 @@
 import type { Filter } from 'nostr-tools';
 import { defaultRelays } from './relay';
+import type { EventFactory } from 'applesauce-factory';
 
 const defaultFilter: Filter = {
 	kinds: [30023],
@@ -10,8 +11,16 @@ const defaultFilter: Filter = {
 	ids: undefined
 };
 
-export const config = $state({
+interface Config {
+	loadReactions: boolean;
+	timelineRelays: string[];
+	timelineFilter: Filter;
+	eventFactory: EventFactory | undefined;
+}
+
+export const config = $state<Config>({
 	loadReactions: false,
 	timelineRelays: defaultRelays,
-	timelineFilter: defaultFilter
+	timelineFilter: defaultFilter,
+	eventFactory: undefined
 });

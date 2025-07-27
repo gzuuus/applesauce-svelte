@@ -43,6 +43,7 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
+		"applesauce-accounts": "^2.0.0",
 		"applesauce-actions": "^2.3.0",
 		"applesauce-core": "^2.3.0",
 		"applesauce-factory": "^2.3.0",
