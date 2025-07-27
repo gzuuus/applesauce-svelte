@@ -8,13 +8,14 @@
 
 	const profile = eventStore.model(ProfileModel, pubkey);
 	$effect(() => {
-		if (!$profile) {
-			addressLoader({
-				kind: 0,
-				pubkey,
-				relays: metadataRelays
-			}).subscribe();
-		}
+		const sub = !$profile
+			? addressLoader({
+					kind: 0,
+					pubkey,
+					relays: metadataRelays
+				}).subscribe()
+			: undefined;
+		return () => sub?.unsubscribe();
 	});
 </script>
 
