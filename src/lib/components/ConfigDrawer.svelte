@@ -152,10 +152,11 @@
 		if (inputTagKey && inputTagValue) {
 			const tagKey = `#${inputTagKey}`;
 			// Use type assertion to access dynamic properties
-			if (!(config.timelineFilter as any)[tagKey]) {
-				(config.timelineFilter as any)[tagKey] = [];
+			const filter = config.timelineFilter as Record<string, string[] | undefined>;
+			if (!filter[tagKey]) {
+				filter[tagKey] = [];
 			}
-			(config.timelineFilter as any)[tagKey].push(inputTagValue);
+			filter[tagKey]!.push(inputTagValue);
 			inputTagKey = '';
 			inputTagValue = '';
 		}
@@ -163,10 +164,11 @@
 
 	function removeTag(key: string, index: number) {
 		// Use type assertion to access dynamic properties
-		if ((config.timelineFilter as any)[key]) {
-			(config.timelineFilter as any)[key].splice(index, 1);
-			if ((config.timelineFilter as any)[key].length === 0) {
-				delete (config.timelineFilter as any)[key];
+		const filter = config.timelineFilter as Record<string, string[] | undefined>;
+		if (filter[key]) {
+			filter[key]!.splice(index, 1);
+			if (filter[key]!.length === 0) {
+				delete filter[key];
 			}
 		}
 	}
@@ -301,7 +303,7 @@
 							</div>
 							{#if config.timelineFilter.kinds?.length}
 								<div class="mt-2 flex flex-wrap gap-2">
-									{#each config.timelineFilter.kinds as kind, i}
+									{#each config.timelineFilter.kinds as kind, i (i)}
 										<div class="flex items-center rounded-md bg-secondary py-1 pr-1 pl-3">
 											<span class="text-sm">{kind}</span>
 											<Button
@@ -343,7 +345,7 @@
 							</div>
 							{#if config.timelineFilter.authors?.length}
 								<div class="mt-2 flex flex-wrap gap-2">
-									{#each config.timelineFilter.authors as author, i}
+									{#each config.timelineFilter.authors as author, i (i)}
 										<div class="flex items-center rounded-md bg-secondary py-1 pr-1 pl-3">
 											<span class="max-w-[120px] truncate text-sm">{author}</span>
 											<Button
@@ -504,9 +506,9 @@
 							</Button>
 							{#if Object.keys(config.timelineFilter).some((key) => key.startsWith('#'))}
 								<div class="mt-2 flex flex-wrap gap-2">
-									{#each Object.entries(config.timelineFilter) as [key, values]}
+									{#each Object.entries(config.timelineFilter) as [key, values] (key)}
 										{#if key.startsWith('#') && Array.isArray(values) && values.length}
-											{#each values as value, i}
+											{#each values as value, i (i)}
 												<div class="flex items-center rounded-md bg-secondary py-1 pr-1 pl-3">
 													<span class="text-xs">{key.slice(1)}:{value}</span>
 													<Button

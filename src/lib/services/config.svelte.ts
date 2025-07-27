@@ -3,7 +3,7 @@ import { defaultRelays } from './relay';
 
 const defaultFilter: Filter = {
 	kinds: [30023],
-	limit: 1,
+	limit: 10,
 	authors: undefined,
 	since: undefined,
 	until: undefined,
@@ -12,8 +12,6 @@ const defaultFilter: Filter = {
 
 export const config = $state({
 	loadReactions: false,
-	kinds: [30023],
-	limit: 1,
 	timelineRelays: defaultRelays,
 	timelineFilter: defaultFilter
 });

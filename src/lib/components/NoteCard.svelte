@@ -18,8 +18,11 @@
 
 <div class="mb-4 rounded-lg bg-white p-4 shadow-md">
 	<ProfileCard pubkey={note.pubkey} />
-	<h4>Kind: {note.kind}</h4>
-	<p class="text-gray-800">{note.content}</p>
+	<div>
+		<span class="font-bold">· {note.kind}</span>
+		<span class="font-bold">· {new Date(note.created_at * 1000).toLocaleString()}</span>
+	</div>
+	<p class="break-words text-gray-800">{note.content}</p>
 	{#if $reactions.length}
 		<h2 class="text-lg font-bold">Reactions: {$reactions.length}</h2>
 		<div class="flex flex-row gap-4">
