@@ -12,8 +12,8 @@
 
 <div
 	bind:this={ref}
-	data-slot="drawer-header"
-	class={cn('flex flex-col gap-1.5 p-4', className)}
+	data-slot="alert-title"
+	class={cn('col-start-2 line-clamp-1 min-h-4 font-medium tracking-tight', className)}
 	{...restProps}
 >
 	{@render children?.()}

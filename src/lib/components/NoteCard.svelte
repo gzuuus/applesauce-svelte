@@ -1,14 +1,13 @@
 <script lang="ts">
 	import type { NostrEvent } from 'nostr-tools';
 	import ProfileCard from './ProfileCard.svelte';
-	import { reactionsLoader } from '$lib/services/loaders';
 	import { eventStore } from '$lib/services/eventStore';
 	import { ReactionsModel } from 'applesauce-core/models';
-	import { config } from '$lib/services/config.svelte';
+	import { reactionsLoader } from '$lib/services/loaders';
 
-	let { note }: { note: NostrEvent } = $props();
+	let { note, loadReactions = false }: { note: NostrEvent; loadReactions?: boolean } = $props();
 	$effect(() => {
-		if (!config.loadReactions) return;
+		if (!loadReactions) return;
 		const sub = reactionsLoader(note).subscribe();
 		return () => sub.unsubscribe();
 	});

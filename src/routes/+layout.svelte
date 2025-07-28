@@ -3,6 +3,7 @@
 	import { activeAccount, manager } from '$lib/services/accountManager.svelte';
 	import { config } from '$lib/services/config.svelte';
 	import { EventFactory } from 'applesauce-factory';
+	import { Toaster } from '$lib/components/ui/sonner/index.js';
 	import '../app.css';
 
 	let { children } = $props();
@@ -23,6 +24,7 @@
 </script>
 
 <div class="mx-auto max-w-2xl p-4">
+	<Toaster />
 	<Header />
 	{@render children()}
 </div>

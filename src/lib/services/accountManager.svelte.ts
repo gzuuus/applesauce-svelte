@@ -5,7 +5,6 @@ import { registerCommonAccountTypes } from 'applesauce-accounts/accounts';
 export const manager = new AccountManager();
 
 export const activeAccount = manager.active$;
-export const activeSigner = $state(manager.active?.signer);
 // register common account types
 registerCommonAccountTypes(manager);
 

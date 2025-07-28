@@ -26,18 +26,20 @@ export async function publishEvent(event: NostrEvent) {
 }
 
 // Publish an event to a single relay
-export async function publishEventToRelay(event: NostrEvent, relayUrl: string) {
+export async function publishEventToRelays(event: NostrEvent, relayUrls: string[]) {
 	try {
-		const responses = relayPool.relay(relayUrl).publish(event);
-		responses.forEach((response: PublishResponse) => {
-			if (response.ok) {
-				console.log(`Event published successfully to ${response.from}`);
-				// Add the event to the event store after successful publish
-				eventStore.add(event);
-			} else {
-				console.log(`Failed to publish event to ${response.from}: ${response.message}`);
-			}
-			return response;
+		relayUrls.forEach((relayUrl) => {
+			const responses = relayPool.relay(relayUrl).publish(event);
+			responses.forEach((response: PublishResponse) => {
+				if (response.ok) {
+					console.log(`Event published successfully to ${response.from}`);
+					// Add the event to the event store after successful publish
+					eventStore.add(event);
+				} else {
+					console.log(`Failed to publish event to ${response.from}: ${response.message}`);
+				}
+				return response;
+			});
 		});
 	} catch (error) {
 		console.error('Error publishing event:', error);

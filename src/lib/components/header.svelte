@@ -1,5 +1,4 @@
 <script lang="ts">
-	import ConfigDrawer from './ConfigDrawer.svelte';
 	import AccountLoginDialog from './AccountLoginDialog.svelte';
 	import ProfileCard from './ProfileCard.svelte';
 	import { activeAccount, logout } from '$lib/services/accountManager.svelte';
@@ -7,7 +6,7 @@
 </script>
 
 <div class="mb-8 flex items-center justify-between">
-	<h1 class="text-3xl font-bold">Nostr Feed</h1>
+	<h1 class="text-3xl font-bold">Applesauce Svelte</h1>
 	<div class="flex items-center gap-4">
 		{#if $activeAccount}
 			<div class="flex items-center gap-3">
@@ -17,6 +16,5 @@
 		{:else}
 			<AccountLoginDialog />
 		{/if}
-		<ConfigDrawer />
 	</div>
 </div>
