@@ -4,15 +4,22 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { manager } from '$lib/services/accountManager.svelte';
-	import { ExtensionSigner } from 'applesauce-signers/signers';
-	import { SimpleAccount } from 'applesauce-accounts/accounts';
-	import { ExtensionAccount } from 'applesauce-accounts/accounts';
+	import { ExtensionSigner, NostrConnectSigner } from 'applesauce-signers/signers';
+	import {
+		SimpleAccount,
+		ExtensionAccount,
+		NostrConnectAccount
+	} from 'applesauce-accounts/accounts';
 
 	let open = $state(false);
-	let selectedTab = $state<'extension' | 'simple'>('extension');
+	let selectedTab = $state<'extension' | 'simple' | 'remote'>('extension');
 	let privateKey = $state('');
+	let bunkerUri = $state('');
+	let qrCodeDataUrl = $state('');
+	let nostrConnectUri = $state('');
 	let loading = $state(false);
 	let error = $state('');
+	let remoteSignerStep = $state<'generate' | 'connecting' | 'manual'>('generate');
 
 	async function connectExtension() {
 		try {
@@ -59,13 +66,110 @@
 		}
 	}
 
+	async function generateRemoteSignerUri() {
+		try {
+			loading = true;
+			error = '';
+
+			const signer = new NostrConnectSigner({
+				relays: ['wss://relay.nsec.app', 'wss://relay.damus.io']
+			});
+
+			// Generate nostr connect URI with app metadata and permissions
+			const uri = signer.getNostrConnectURI({
+				name: 'Applesauce',
+				url: window.location.origin,
+				image: `${window.location.origin}/favicon.svg`
+			});
+
+			nostrConnectUri = uri;
+
+			// Generate QR code using qrserver.com API
+			qrCodeDataUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(uri)}`;
+
+			remoteSignerStep = 'connecting';
+
+			// Start waiting for the signer to connect
+			await signer.waitForSigner();
+
+			// Get the user's public key
+			const pubkey = await signer.getPublicKey();
+			const account = new NostrConnectAccount(pubkey, signer);
+
+			manager.addAccount(account);
+			manager.setActive(account);
+
+			// Reset state and close dialog
+			resetRemoteSignerState();
+			open = false;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to connect remote signer';
+			remoteSignerStep = 'generate';
+		} finally {
+			loading = false;
+		}
+	}
+
+	async function connectWithBunkerUri() {
+		if (!bunkerUri.trim()) {
+			error = 'Please enter a bunker URI';
+			return;
+		}
+
+		try {
+			loading = true;
+			error = '';
+
+			const signer = await NostrConnectSigner.fromBunkerURI(bunkerUri.trim());
+
+			// Connect to the remote signer
+			await signer.connect();
+
+			// Get the user's public key
+			const pubkey = await signer.getPublicKey();
+			const account = new NostrConnectAccount(pubkey, signer);
+
+			manager.addAccount(account);
+			manager.setActive(account);
+
+			// Reset state and close dialog
+			resetRemoteSignerState();
+			bunkerUri = '';
+			open = false;
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to connect with bunker URI';
+		} finally {
+			loading = false;
+		}
+	}
+
+	function resetRemoteSignerState() {
+		remoteSignerStep = 'generate';
+		qrCodeDataUrl = '';
+		nostrConnectUri = '';
+		error = '';
+	}
+
 	function handleSubmit() {
 		if (selectedTab === 'extension') {
 			connectExtension();
-		} else {
+		} else if (selectedTab === 'simple') {
 			connectSimple();
+		} else if (selectedTab === 'remote') {
+			if (remoteSignerStep === 'manual') {
+				connectWithBunkerUri();
+			} else {
+				generateRemoteSignerUri();
+			}
 		}
 	}
+
+	// Reset remote signer state when tab changes
+	$effect(() => {
+		if (selectedTab !== 'remote') {
+			resetRemoteSignerState();
+		}
+	});
 
 	$effect(() => {
 		// Check if extension is available
@@ -105,6 +209,15 @@
 				>
 					Private Key
 				</button>
+				<button
+					class="flex-1 rounded-md px-3 py-2 text-sm font-medium transition-colors {selectedTab ===
+					'remote'
+						? 'bg-background shadow-sm'
+						: 'hover:bg-muted-foreground/10'}"
+					onclick={() => (selectedTab = 'remote')}
+				>
+					Remote Signer
+				</button>
 			</div>
 
 			<!-- Extension Tab -->
@@ -140,6 +253,74 @@
 				</div>
 			{/if}
 
+			<!-- Remote Signer Tab -->
+			{#if selectedTab === 'remote'}
+				<div class="space-y-4">
+					{#if remoteSignerStep === 'generate'}
+						<div class="space-y-4">
+							<p class="text-sm text-muted-foreground">
+								Connect using a remote signer app that supports NIP-46 (Nostr Connect).
+							</p>
+							<div class="flex gap-2">
+								<Button
+									variant="outline"
+									class="flex-1"
+									onclick={() => (remoteSignerStep = 'manual')}
+								>
+									Enter Bunker URI
+								</Button>
+							</div>
+						</div>
+					{:else if remoteSignerStep === 'connecting'}
+						<div class="space-y-4 text-center">
+							<p class="text-sm text-muted-foreground">
+								Scan this QR code with your signer app or copy the connection string:
+							</p>
+
+							{#if qrCodeDataUrl}
+								<div class="flex justify-center">
+									<img src={qrCodeDataUrl} alt="Nostr Connect QR Code" class="rounded-lg border" />
+								</div>
+							{/if}
+
+							<div class="space-y-2">
+								<Label for="connect-uri">Connection String</Label>
+								<Input
+									id="connect-uri"
+									value={nostrConnectUri}
+									readonly
+									class="font-mono text-xs"
+									onclick={(e) => (e.target as HTMLInputElement)?.select()}
+								/>
+								<p class="text-xs text-muted-foreground">Waiting for signer app to connect...</p>
+							</div>
+
+							<Button variant="outline" onclick={() => resetRemoteSignerState()} disabled={loading}>
+								Cancel
+							</Button>
+						</div>
+					{:else if remoteSignerStep === 'manual'}
+						<div class="space-y-4">
+							<div class="space-y-2">
+								<Label for="bunker-uri">Bunker URI</Label>
+								<Input
+									id="bunker-uri"
+									placeholder="bunker://..."
+									bind:value={bunkerUri}
+									class="font-mono"
+								/>
+								<p class="text-xs text-muted-foreground">
+									Enter the bunker URI provided by your signer app.
+								</p>
+							</div>
+							<Button variant="outline" onclick={() => (remoteSignerStep = 'generate')}>
+								Back to QR Code
+							</Button>
+						</div>
+					{/if}
+				</div>
+			{/if}
+
 			{#if error}
 				<p class="text-sm text-destructive">{error}</p>
 			{/if}
@@ -147,9 +328,19 @@
 
 		<Dialog.Footer>
 			<Button variant="outline" onclick={() => (open = false)}>Cancel</Button>
-			<Button onclick={handleSubmit} disabled={loading}>
-				{loading ? 'Connecting...' : 'Connect'}
-			</Button>
+			{#if selectedTab === 'remote' && remoteSignerStep === 'connecting'}
+				<!-- No connect button when waiting for remote signer -->
+			{:else}
+				<Button onclick={handleSubmit} disabled={loading}>
+					{loading
+						? 'Connecting...'
+						: selectedTab === 'remote' && remoteSignerStep === 'manual'
+							? 'Connect with Bunker URI'
+							: selectedTab === 'remote'
+								? 'Generate QR Code'
+								: 'Connect'}
+				</Button>
+			{/if}
 		</Dialog.Footer>
 	</Dialog.Content>
 </Dialog.Root>
