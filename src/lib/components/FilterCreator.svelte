@@ -142,8 +142,8 @@
 	});
 </script>
 
-<div class="mx-auto w-full max-w-2xl space-y-6 p-6">
-	<div class="flex flex-col gap-4 rounded-lg border bg-card p-6">
+<div class="mx-auto w-full max-w-2xl space-y-6 p-2">
+	<div class="flex flex-col gap-4 rounded-lg border bg-card p-2">
 		<h2 class="mb-6 text-2xl font-bold text-foreground">Nostr Filter Creator</h2>
 
 		<!-- Event IDs -->

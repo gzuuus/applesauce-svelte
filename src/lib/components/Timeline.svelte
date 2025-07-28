@@ -8,9 +8,15 @@
 	import RelayUrlCreator from '$lib/components/RelayUrlCreator.svelte';
 	import Button from './ui/button/button.svelte';
 
-	let currentFilter: Filter | undefined = $state(undefined);
-	let currentRelays: string[] | undefined = $state(undefined);
-	let loadReactions = $state(false);
+	let {
+		filter,
+		relays,
+		loadReactions
+	}: { filter?: Filter; relays?: string[]; loadReactions?: boolean } = $props();
+
+	let currentFilter: Filter | undefined = $state(filter);
+	let currentRelays: string[] | undefined = $state(relays);
+	let currentLoadReactions = $state(loadReactions || false);
 
 	let filterCollapsibleOpen = $state(false);
 	let relaysCollapsibleOpen = $state(false);
@@ -45,7 +51,7 @@
 			variant={filterCollapsibleOpen ? 'default' : 'outline'}
 			onclick={() => (filterCollapsibleOpen = !filterCollapsibleOpen)}>Create a filter</Button
 		>
-		<div class="w-full space-y-2" class:hidden={!filterCollapsibleOpen}>
+		<div class="" class:hidden={!filterCollapsibleOpen}>
 			<FilterCreator onSetFilter={handleSetFilter} />
 		</div>
 
@@ -58,8 +64,8 @@
 			<RelayUrlCreator onSetRelays={handleSetRelays} />
 		</div>
 		<Button
-			variant={loadReactions ? 'default' : 'outline'}
-			onclick={() => (loadReactions = !loadReactions)}>Load Reactions</Button
+			variant={currentLoadReactions ? 'default' : 'outline'}
+			onclick={() => (currentLoadReactions = !currentLoadReactions)}>Load Reactions</Button
 		>
 	</div>
 	{#if !currentFilter || !currentRelays || currentRelays.length === 0}
@@ -74,7 +80,7 @@
 	<div>
 		{#if $timeline?.length}
 			{#each $timeline as note (note.id)}
-				<NoteCard {note} {loadReactions} />
+				<NoteCard {note} loadReactions={currentLoadReactions} />
 			{/each}
 		{:else}
 			<p class="py-4 text-center text-gray-500">No notes to display</p>

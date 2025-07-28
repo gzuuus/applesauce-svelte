@@ -23,7 +23,7 @@
 	});
 </script>
 
-<div class="mx-auto max-w-2xl p-4">
+<div class="mx-auto max-w-[90vw] p-4">
 	<Toaster />
 	<Header />
 	{@render children()}

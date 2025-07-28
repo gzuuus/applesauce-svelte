@@ -13,7 +13,7 @@ export function validateRelay(url: string): string | null {
 		}
 	} catch (e) {
 		// Invalid URL
-		console.warn('Invalid relay URL:', url);
+		console.warn('Invalid relay URL:', e);
 	}
 	return null;
 }
