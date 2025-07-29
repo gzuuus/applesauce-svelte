@@ -19,22 +19,23 @@ NostrConnectSigner.publishMethod = relayPool.publish.bind(relayPool);
 if (browser) {
 	// first load all accounts from localStorage
 	const json = JSON.parse(localStorage.getItem('accounts') || '[]');
-	await manager.fromJSON(json);
+	if (json.length) {
+		manager.fromJSON(json);
 
-	// next, subscribe to any accounts added or removed
-	manager.accounts$.subscribe((accounts) => {
-		// save all the accounts into the "accounts" field
-		localStorage.setItem('accounts', JSON.stringify(manager.toJSON()));
-	});
+		// load active account from storage
+		const active = localStorage.getItem('active');
+		if (active) manager.setActive(active);
 
-	// load active account from storage
-	const active = localStorage.getItem('active');
-	if (active) manager.setActive(active);
-
-	// subscribe to active changes
+		// subscribe to active changes
+	}
 	manager.active$.subscribe((account) => {
 		if (account) localStorage.setItem('active', account.id);
-		else localStorage.clearItem('active');
+		else localStorage.removeItem('active');
+	});
+	// next, subscribe to any accounts added or removed
+	manager.accounts$.subscribe(() => {
+		// save all the accounts into the "accounts" field
+		localStorage.setItem('accounts', JSON.stringify(manager.toJSON()));
 	});
 }
 

@@ -144,6 +144,7 @@
 	}
 
 	function resetRemoteSignerState() {
+		loading = false;
 		remoteSignerStep = 'generate';
 		qrCodeDataUrl = '';
 		nostrConnectUri = '';
@@ -295,9 +296,7 @@
 								<p class="text-xs text-muted-foreground">Waiting for signer app to connect...</p>
 							</div>
 
-							<Button variant="outline" onclick={() => resetRemoteSignerState()} disabled={loading}>
-								Cancel
-							</Button>
+							<Button variant="outline" onclick={() => resetRemoteSignerState()}>Cancel</Button>
 						</div>
 					{:else if remoteSignerStep === 'manual'}
 						<div class="space-y-4">
@@ -327,11 +326,11 @@
 		</div>
 
 		<Dialog.Footer>
-			<Button variant="outline" onclick={() => (open = false)}>Cancel</Button>
+			<Button variant="outline" onclick={() => (open = false)} disabled={loading}>Cancel</Button>
 			{#if selectedTab === 'remote' && remoteSignerStep === 'connecting'}
 				<!-- No connect button when waiting for remote signer -->
 			{:else}
-				<Button onclick={handleSubmit} disabled={loading}>
+				<Button onclick={handleSubmit}>
 					{loading
 						? 'Connecting...'
 						: selectedTab === 'remote' && remoteSignerStep === 'manual'
