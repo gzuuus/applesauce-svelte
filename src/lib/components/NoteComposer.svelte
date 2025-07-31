@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { publishEventToRelays } from '../services/publishing';
-	import { config } from '$lib/services/config.svelte';
 	import { defaultRelays } from '$lib/services/relay';
 	import { validateRelay } from '$lib/utils';
 	import type { EventTemplate } from 'nostr-tools';
@@ -9,7 +8,7 @@
 	import { Label } from './ui/label';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import X from '@lucide/svelte/icons/x';
-	import { activeAccount } from '$lib/services/accountManager.svelte';
+	import { activeAccount, manager } from '$lib/services/accountManager.svelte';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import CircleAlertIcon from '@lucide/svelte/icons/circle-alert';
 	import AccountLoginDialog from './AccountLoginDialog.svelte';
@@ -71,7 +70,7 @@
 	}
 
 	async function postNote() {
-		if (!content.trim() || !config.eventFactory) return;
+		if (!content.trim() || !manager.signer) return;
 
 		isPosting = true;
 		error = '';
@@ -86,7 +85,7 @@
 			});
 
 			// Sign the draft event
-			const signed = await config.eventFactory.sign(draft);
+			const signed = await manager.signer.signEvent(draft);
 
 			// Publish the event
 			await publishEventToRelays(signed, relays);
